@@ -4,8 +4,9 @@ import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
+import Logo from "@/components/Logo";
 import Link from "next/link";
-import { Users, FileText, MessageSquare, TrendingUp } from "lucide-react";
+import { Users, FileText, MessageSquare, TrendingUp, ArrowRight } from "lucide-react";
 
 export default function Page() {
   const { user, loading } = useAuth();
@@ -13,41 +14,42 @@ export default function Page() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-indigo-600 to-indigo-800 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold mb-6">
-              Welcome to Civix
+      <section className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="text-center max-w-3xl mx-auto">
+            <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-6">
+              Make Your Voice Heard
             </h1>
-            <p className="text-xl text-indigo-100 mb-8 max-w-2xl mx-auto">
-              Your digital platform for civic engagement. Connect with your community,
-              participate in local governance, and make your voice heard.
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+              Connect with your community, participate in local governance, and create meaningful change through civic engagement.
             </p>
+            
             {!user && (
-              <div className="flex gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/register"
-                  className="px-8 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
                 >
                   Get Started
+                  <ArrowRight className="h-5 w-5" />
                 </Link>
                 <Link
                   href="/login"
-                  className="px-8 py-3 bg-indigo-700 text-white rounded-lg font-semibold hover:bg-indigo-600 transition"
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg font-semibold hover:border-gray-400 dark:hover:border-gray-500 transition"
                 >
                   Sign In
                 </Link>
@@ -56,9 +58,10 @@ export default function Page() {
             {user && (
               <Link
                 href="/dashboard"
-                className="inline-block px-8 py-3 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-100 transition"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
               >
                 Go to Dashboard
+                <ArrowRight className="h-5 w-5" />
               </Link>
             )}
           </div>
@@ -66,85 +69,93 @@ export default function Page() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20">
+      <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Empowering Citizens
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              Your Platform for Change
             </h2>
-            <p className="text-lg text-gray-600">
-              Join millions of citizens making a difference in their communities
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              Join thousands of citizens making a difference
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
-              <Users className="h-12 w-12 text-indigo-600 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">2.4M+ Citizens</h3>
-              <p className="text-gray-600">Active community members engaged daily</p>
+            <div className="text-center">
+              <div className="inline-flex h-12 w-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg items-center justify-center mb-4">
+                <Users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">2,400+</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Active Citizens</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
-              <FileText className="h-12 w-12 text-indigo-600 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">12K+ Petitions</h3>
-              <p className="text-gray-600">Community initiatives and proposals</p>
+            <div className="text-center">
+              <div className="inline-flex h-12 w-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg items-center justify-center mb-4">
+                <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">1,200+</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Petitions Created</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
-              <MessageSquare className="h-12 w-12 text-indigo-600 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">8.9K+ Responses</h3>
-              <p className="text-gray-600">Official responses from authorities</p>
+            <div className="text-center">
+              <div className="inline-flex h-12 w-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg items-center justify-center mb-4">
+                <MessageSquare className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">890+</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Official Responses</p>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition">
-              <TrendingUp className="h-12 w-12 text-indigo-600 mb-4" />
-              <h3 className="text-xl font-semibold mb-2">67% Success</h3>
-              <p className="text-gray-600">Petitions that led to real change</p>
+            <div className="text-center">
+              <div className="inline-flex h-12 w-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg items-center justify-center mb-4">
+                <TrendingUp className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">67%</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Success Rate</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="bg-white py-20">
+      <section className="bg-white dark:bg-gray-800 py-16 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              How Civix Works
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">
+              How It Works
             </h2>
-            <p className="text-lg text-gray-600">
-              Three simple steps to make your voice heard
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              Three simple steps to get started
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-12">
             <div className="text-center">
-              <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-indigo-600">1</span>
+              <div className="inline-flex w-12 h-12 bg-indigo-600 rounded-lg items-center justify-center mx-auto mb-4">
+                <span className="text-xl font-bold text-white">1</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Create Account</h3>
-              <p className="text-gray-600">
-                Sign up quickly and securely to join your community
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Create Account</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Sign up to join your local community
               </p>
             </div>
 
             <div className="text-center">
-              <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-indigo-600">2</span>
+              <div className="inline-flex w-12 h-12 bg-indigo-600 rounded-lg items-center justify-center mx-auto mb-4">
+                <span className="text-xl font-bold text-white">2</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Engage</h3>
-              <p className="text-gray-600">
-                Create petitions, vote, and participate in discussions
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Take Action</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Create petitions or support existing ones
               </p>
             </div>
 
             <div className="text-center">
-              <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-indigo-600">3</span>
+              <div className="inline-flex w-12 h-12 bg-indigo-600 rounded-lg items-center justify-center mx-auto mb-4">
+                <span className="text-xl font-bold text-white">3</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Create Change</h3>
-              <p className="text-gray-600">
-                See real results as your community takes action
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Make Impact</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Track progress and see real change happen
               </p>
             </div>
           </div>
@@ -152,20 +163,17 @@ export default function Page() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      <footer className="bg-gray-900 dark:bg-black text-white py-12 border-t border-gray-800 dark:border-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 font-bold">
-                C
-              </div>
-              <span className="text-xl font-bold">Civix</span>
+            <div className="flex items-center justify-center mb-4">
+              <Logo size="sm" showText={true} className="[&>span]:!text-white" />
             </div>
             <p className="text-gray-400 mb-4">
-              Empowering citizens through digital engagement
+              Digital civic engagement platform
             </p>
             <p className="text-sm text-gray-500">
-              © 2026 Civix - Team 02. All rights reserved.
+              © 2026 Civix. All rights reserved.
             </p>
           </div>
         </div>

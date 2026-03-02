@@ -98,3 +98,69 @@ export const authApi = {
     });
   },
 };
+
+// Petition API
+export const petitionApi = {
+  create: async (petitionData: {
+    title: string;
+    description: string;
+    category: string;
+    location: string;
+  }) => {
+    return fetchApi('/petitions', {
+      method: 'POST',
+      body: JSON.stringify(petitionData),
+    });
+  },
+
+  getAll: async (filters?: {
+    location?: string;
+    category?: string;
+    status?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (filters?.location) queryParams.append('location', filters.location);
+    if (filters?.category) queryParams.append('category', filters.category);
+    if (filters?.status) queryParams.append('status', filters.status);
+    
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/petitions?${queryString}` : '/petitions';
+    
+    return fetchApi(endpoint, {
+      method: 'GET',
+    });
+  },
+
+  getById: async (id: string) => {
+    return fetchApi(`/petitions/${id}`, {
+      method: 'GET',
+    });
+  },
+
+  sign: async (id: string) => {
+    return fetchApi(`/petitions/${id}/sign`, {
+      method: 'POST',
+    });
+  },
+
+  // Official-only: update petition status
+  updateStatus: async (id: string, status: string) => {
+    return fetchApi(`/petitions/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  // Citizen-only: get current user's created petitions
+  getMine: async () => {
+    return fetchApi('/petitions/user/mine', {
+      method: 'GET',
+    });
+  },
+
+  getStats: async () => {
+    return fetchApi('/petitions/stats', {
+      method: 'GET',
+    });
+  },
+};

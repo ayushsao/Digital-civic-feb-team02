@@ -41,7 +41,15 @@ const protect = async (req, res, next) => {
     }
 
   
-    req.user = { id: user._id, role: user.role };
+    req.user = {
+      _id: user._id,
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      location: user.location,
+      isVerified: user.isVerified,
+    };
     next();
   } catch (error) {
     if (
@@ -60,4 +68,51 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { protect };
+/**
+ * Optional authentication middleware.
+ * Populates req.user if a valid token is present but does NOT
+ * reject the request when the token is missing or invalid.
+ * Use on public routes where behaviour changes per role
+ * (e.g. officials see only their location's petitions).
+ */
+const optionalAuth = async (req, res, next) => {
+  try {
+    let token;
+
+    if (req.cookies && req.cookies.token) {
+      token = req.cookies.token;
+    }
+
+    if (
+      !token &&
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
+
+    if (!token) return next(); // No token — continue as anonymous
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (user) {
+      req.user = {
+        _id: user._id,
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        location: user.location,
+        isVerified: user.isVerified,
+      };
+    }
+
+    next();
+  } catch {
+    // Token invalid/expired — continue as anonymous
+    next();
+  }
+};
+
+module.exports = { protect, optionalAuth };

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import { ApiError } from "@/lib/api";
+import Logo from "@/components/Logo";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -38,25 +39,22 @@ export default function LoginForm() {
   return (
     <div className="flex min-h-screen w-full flex-col lg:flex-row">
       {/* LEFT SIDE - FORM */}
-      <div className="flex w-full flex-col justify-center bg-white px-8 py-12 lg:w-1/2 lg:px-20">
+      <div className="flex w-full flex-col justify-center bg-white dark:bg-gray-900 px-8 py-12 lg:w-1/2 lg:px-20">
 
         {/* Back Link */}
-        <Link href="/" className="mb-8 text-sm font-medium text-gray-600 hover:text-gray-900">
+        <Link href="/" className="mb-8 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
           ← Back to Home
         </Link>
 
         {/* Logo */}
-        <div className="mb-6 flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-900 text-white font-bold text-xl">
-            C
-          </div>
-          <span className="text-xl font-bold text-gray-900">Civix</span>
+        <div className="mb-6">
+          <Logo size="md" showText={true} />
         </div>
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-          <p className="mt-2 text-gray-500">Sign in to continue your civic engagement journey</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome Back</h1>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">Sign in to continue your civic engagement journey</p>
         </div>
 
         {/* Error Message */}
@@ -67,22 +65,22 @@ export default function LoginForm() {
         )}
 
         {/* Dynamic Form Structure */}
-        <div className="mb-6 rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-          <h2 className="mb-1 text-sm font-semibold text-gray-900">
+        <div className="mb-6 rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm">
+          <h2 className="mb-1 text-sm font-semibold text-gray-900 dark:text-white">
             Sign In
           </h2>
-          <p className="mb-6 text-xs text-gray-500">
+          <p className="mb-6 text-xs text-gray-500 dark:text-gray-400">
             Enter your credentials to access your account
           </p>
 
           <form onSubmit={handleLogin} className="space-y-5">
             {/* Email */}
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-700">Email Address</label>
+              <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Email Address</label>
               <input
                 type="email"
                 required
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -92,13 +90,13 @@ export default function LoginForm() {
             {/* Password */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-gray-700">Password</label>
-                <a href="#" className="text-xs text-indigo-600 hover:underline">Forgot?</a>
+                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300">Password</label>
+                <a href="#" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline">Forgot?</a>
               </div>
               <input
                 type="password"
                 required
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-4 py-2.5 text-sm text-gray-900 dark:text-white outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -113,7 +111,7 @@ export default function LoginForm() {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
               />
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
                 Remember me for 30 days
               </span>
             </label>
@@ -122,7 +120,7 @@ export default function LoginForm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-indigo-900 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-indigo-800 disabled:opacity-70"
+              className="w-full rounded-xl bg-indigo-900 dark:bg-indigo-600 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-indigo-800 dark:hover:bg-indigo-700 disabled:opacity-70"
             >
               {loading ? "Signing In..." : "Sign In"}
             </button>
@@ -130,12 +128,12 @@ export default function LoginForm() {
         </div>
 
         {/* Footer Link */}
-        <div className="mb-8 text-center text-sm text-gray-500">
-          Don't have an account? <Link href="/register" className="font-semibold text-indigo-700 hover:underline">Create Account</Link>
+        <div className="mb-8 text-center text-sm text-gray-500 dark:text-gray-400">
+          Don't have an account? <Link href="/register" className="font-semibold text-indigo-700 dark:text-indigo-400 hover:underline">Create Account</Link>
         </div>
 
         {/* Footer Security */}
-        <div className="flex items-center gap-2 rounded-lg bg-gray-50 p-3 text-gray-500">
+        <div className="flex items-center gap-2 rounded-lg bg-gray-50 dark:bg-gray-800 p-3 text-gray-500 dark:text-gray-400">
           <ShieldCheck className="h-4 w-4 shrink-0" />
           <span className="text-[10px] leading-tight">Your data is encrypted and protected by industry-leading security standards</span>
         </div>
