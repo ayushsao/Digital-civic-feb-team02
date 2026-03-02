@@ -2,138 +2,348 @@
 
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import { Clock, MapPin, Shield } from "lucide-react";
+import { petitionApi } from "@/lib/api";
+import {
+  Clock, MapPin, Shield, TrendingUp, FileText,
+  Users, CheckCircle, AlertCircle, XCircle, Plus,
+  ChevronRight, BarChart3, Tag, RefreshCw
+} from "lucide-react";
 
+const STATUS_STYLES: Record<string, string> = {
+  active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  under_review: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  closed: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
+};
+
+const STATUS_NEXT: Record<string, { label: string; value: string; color: string }[]> = {
+  active: [
+    { label: "Set Under Review", value: "under_review", color: "bg-yellow-500 hover:bg-yellow-600 text-white" },
+    { label: "Close", value: "closed", color: "bg-red-500 hover:bg-red-600 text-white" },
+  ],
+  under_review: [
+    { label: "Activate", value: "active", color: "bg-green-500 hover:bg-green-600 text-white" },
+    { label: "Close", value: "closed", color: "bg-red-500 hover:bg-red-600 text-white" },
+  ],
+  closed: [
+    { label: "Reopen", value: "active", color: "bg-green-500 hover:bg-green-600 text-white" },
+  ],
+};
+
+interface Petition {
+  _id: string;
+  title: string;
+  category: string;
+  location: string;
+  status: string;
+  signatureCount: number;
+  createdAt: string;
+  creator?: { name: string };
+}
+
+interface Stats {
+  totalPetitions: number;
+  activePetitions: number;
+  underReviewPetitions: number;
+  closedPetitions: number;
+  totalSignatures: number;
+}
+
+// ─── Official Dashboard ────────────────────────────────────────────────────────
+function OfficialDashboard({ user }: { user: { name: string; role: string; location: string; isVerified: boolean; _id: string } }) {
+  const [petitions, setPetitions] = useState<Petition[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState<string | null>(null);
+  const [statusMsg, setStatusMsg] = useState<{ id: string; msg: string; ok: boolean } | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [pRes, sRes] = await Promise.all([
+        petitionApi.getAll({ location: user.location }),
+        petitionApi.getStats(),
+      ]);
+      if (pRes.success) setPetitions(pRes.petitions || []);
+      if (sRes.success) setStats(sRes.stats);
+    } catch { /* silent */ }
+    finally { setLoading(false); }
+  }, [user.location]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const changeStatus = async (petitionId: string, newStatus: string) => {
+    setUpdating(petitionId);
+    setStatusMsg(null);
+    try {
+      const res = await petitionApi.updateStatus(petitionId, newStatus);
+      if (res.success) {
+        setPetitions((prev) =>
+          prev.map((p) => p._id === petitionId ? { ...p, status: newStatus } : p)
+        );
+        setStatusMsg({ id: petitionId, msg: res.message, ok: true });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to update status";
+      setStatusMsg({ id: petitionId, msg, ok: false });
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        {/* Header */}
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 mb-8">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/50 px-2 py-0.5 rounded">Official</span>
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome, {user.name}</h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1.5">
+                <MapPin className="h-4 w-4" /> Managing petitions in <strong>{user.location}</strong>
+              </p>
+            </div>
+            <button onClick={load} className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg transition-colors">
+              <RefreshCw className="h-4 w-4" /> Refresh
+            </button>
+          </div>
+        </div>
+
+        {/* Stats */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {[
+              { label: "Total", value: stats.totalPetitions, icon: BarChart3, color: "text-indigo-600 bg-indigo-100 dark:bg-indigo-900 dark:text-indigo-400" },
+              { label: "Active", value: stats.activePetitions, icon: CheckCircle, color: "text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-400" },
+              { label: "Under Review", value: stats.underReviewPetitions, icon: AlertCircle, color: "text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-400" },
+              { label: "Closed", value: stats.closedPetitions, icon: XCircle, color: "text-gray-500 bg-gray-100 dark:bg-gray-700 dark:text-gray-400" },
+            ].map(({ label, value, icon: Icon, color }) => (
+              <div key={label} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center mb-3 ${color}`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Petitions management table */}
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Petitions in {user.location}
+            </h2>
+            <span className="text-sm text-gray-500 dark:text-gray-400">{petitions.length} total</span>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            </div>
+          ) : petitions.length === 0 ? (
+            <div className="text-center py-16">
+              <FileText className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400">No petitions in your location yet.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+              {petitions.map((p) => (
+                <div key={p._id} className="px-6 py-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <Link href={`/petitions/${p._id}`} className="font-semibold text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors truncate">
+                          {p.title}
+                        </Link>
+                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize whitespace-nowrap ${STATUS_STYLES[p.status] || STATUS_STYLES.closed}`}>
+                          {p.status.replace("_", " ")}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="flex items-center gap-1"><Tag className="h-3 w-3" />{p.category}</span>
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3" />{p.signatureCount} signatures</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(p.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      {/* Inline status message */}
+                      {statusMsg?.id === p._id && (
+                        <p className={`text-xs mt-2 ${statusMsg.ok ? "text-green-600 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
+                          {statusMsg.msg}
+                        </p>
+                      )}
+                    </div>
+                    {/* Status action buttons */}
+                    <div className="flex flex-wrap gap-2 shrink-0">
+                      {(STATUS_NEXT[p.status] || []).map((action) => (
+                        <button
+                          key={action.value}
+                          onClick={() => changeStatus(p._id, action.value)}
+                          disabled={updating === p._id}
+                          className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${action.color}`}
+                        >
+                          {updating === p._id ? "..." : action.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Citizen Dashboard ─────────────────────────────────────────────────────────
+function CitizenDashboard({ user }: { user: { name: string; role: string; location: string; isVerified: boolean; _id: string; email: string } }) {
+  const router = useRouter();
+  const [myPetitions, setMyPetitions] = useState<Petition[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    petitionApi.getMine()
+      .then((res) => { if (res.success) setMyPetitions(res.petitions || []); })
+      .catch(() => { /* silent */ })
+      .finally(() => setLoading(false));
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+        {/* Header */}
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-8 mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
+              <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/50 px-2 py-0.5 rounded">Citizen</span>
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome back, {user.name}</h1>
+          <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1"><MapPin className="h-4 w-4" />{user.location}</span>
+            <span className={`flex items-center gap-1 ${user.isVerified ? "text-green-600 dark:text-green-400" : "text-yellow-600 dark:text-yellow-500"}`}>
+              {user.isVerified ? <CheckCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+              {user.isVerified ? "Verified" : "Pending Verification"}
+            </span>
+          </div>
+        </div>
+
+        {/* Quick Actions — citizens can create & browse */}
+        <div className="grid sm:grid-cols-2 gap-4 mb-8">
+          <button
+            onClick={() => router.push("/petitions/create")}
+            className="flex items-center gap-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl p-6 transition-colors text-left"
+          >
+            <div className="h-12 w-12 bg-indigo-500 rounded-lg flex items-center justify-center shrink-0">
+              <Plus className="h-6 w-6" />
+            </div>
+            <div>
+              <p className="font-bold text-lg">Create Petition</p>
+              <p className="text-indigo-200 text-sm">Start a new civic petition</p>
+            </div>
+          </button>
+          <button
+            onClick={() => router.push("/petitions")}
+            className="flex items-center gap-4 bg-white dark:bg-gray-800 hover:border-indigo-400 dark:hover:border-indigo-500 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl p-6 transition-colors text-left"
+          >
+            <div className="h-12 w-12 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center shrink-0">
+              <TrendingUp className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <p className="font-bold text-lg">Browse Petitions</p>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">View and sign active petitions</p>
+            </div>
+          </button>
+        </div>
+
+        {/* My Petitions */}
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">My Petitions</h2>
+            <Link href="/petitions/create" className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+              + New
+            </Link>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            </div>
+          ) : myPetitions.length === 0 ? (
+            <div className="text-center py-16">
+              <FileText className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400 font-medium">You haven't created any petitions yet.</p>
+              <button onClick={() => router.push("/petitions/create")} className="mt-4 text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium">
+                Create your first petition →
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+              {myPetitions.map((p) => (
+                <Link key={p._id} href={`/petitions/${p._id}`} className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <span className="font-medium text-gray-900 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{p.title}</span>
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize whitespace-nowrap ${STATUS_STYLES[p.status] || STATUS_STYLES.closed}`}>
+                        {p.status.replace("_", " ")}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="flex items-center gap-1"><Tag className="h-3 w-3" />{p.category}</span>
+                      <span className="flex items-center gap-1"><Users className="h-3 w-3" />{p.signatureCount} signatures</span>
+                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{new Date(p.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-indigo-500 shrink-0 ml-4 transition-colors" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ─── Root Dashboard (role router) ─────────────────────────────────────────────
 export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/login");
-    }
+    if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Welcome Section */}
-        <div className="bg-white rounded-xl shadow-sm p-8 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user.name}!
-          </h1>
-          <p className="text-gray-600">
-            Here's your civic engagement dashboard
-          </p>
-        </div>
-
-        {/* User Info Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <Shield className="h-8 w-8 text-indigo-600" />
-              <div>
-                <p className="text-sm text-gray-600">Role</p>
-                <p className="text-lg font-semibold capitalize">{user.role}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <MapPin className="h-8 w-8 text-indigo-600" />
-              <div>
-                <p className="text-sm text-gray-600">Location</p>
-                <p className="text-lg font-semibold">{user.location}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center gap-3 mb-3">
-              <Clock className="h-8 w-8 text-indigo-600" />
-              <div>
-                <p className="text-sm text-gray-600">Status</p>
-                <p className="text-lg font-semibold">
-                  {user.isVerified ? "Verified" : "Pending"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Account Details */}
-        <div className="bg-white rounded-xl shadow-sm p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Account Details
-          </h2>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-gray-600">Email</label>
-              <p className="text-lg text-gray-900">{user.email}</p>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-600">User ID</label>
-              <p className="text-sm text-gray-700 font-mono">{user._id}</p>
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-600">Verification Status</label>
-              <div className="mt-2">
-                {user.isVerified ? (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    ✓ Verified
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                    ⏳ Pending Verification
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="mt-8 bg-gradient-to-r from-indigo-600 to-indigo-800 rounded-xl shadow-sm p-8 text-white">
-          <h2 className="text-2xl font-bold mb-4">Quick Actions</h2>
-          <p className="mb-6 text-indigo-100">
-            Start engaging with your community today
-          </p>
-          <div className="grid md:grid-cols-3 gap-4">
-            <button className="bg-white text-indigo-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
-              Create Petition
-            </button>
-            <button className="bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-600 transition">
-              Browse Issues
-            </button>
-            <button className="bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-600 transition">
-              View My Activity
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return user.role === "official"
+    ? <OfficialDashboard user={user} />
+    : <CitizenDashboard user={user} />;
 }

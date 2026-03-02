@@ -8,6 +8,7 @@ const rateLimit = require("express-rate-limit");
 // Import routes
 const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const petitionRoutes = require("./routes/petitionRoutes");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -79,6 +80,7 @@ app.get("/", (req, res) => {
 // --------------- API Routes ---------------
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/petitions", petitionRoutes);
 
 // --------------- Error Handling ---------------
 app.use(notFound);
