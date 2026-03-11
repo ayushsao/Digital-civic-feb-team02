@@ -31,5 +31,4 @@ process.on("uncaughtException", (err) => {
 });
 
 
-const cookieParser = require("cookie-parser");
-app.use(cookieParser());
+

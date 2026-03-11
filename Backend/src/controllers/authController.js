@@ -28,10 +28,18 @@ exports.register = async (req, res) => {
 
     const token = generateToken(user);
 
+    res.cookie("token", token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    maxAge: 24 * 60 * 60 * 1000,
+    });
+
     res.status(201).json({
-      message: "User registered successfully",
-      token,
-      user,
+    success: true,
+    message: "User registered successfully",
+    token,
+    user,
     });
 
   } catch (error) {
@@ -57,7 +65,15 @@ exports.login = async (req, res) => {
 
     const token = generateToken(user);
 
-    res.json({
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      success: true,
       message: "Login successful",
       token,
       user,
