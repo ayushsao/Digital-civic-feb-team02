@@ -8,6 +8,8 @@ const rateLimit = require("express-rate-limit");
 // Import routes
 const authRoutes = require("./routes/authRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const petitionRoutes = require("./routes/petitionRoutes");
+const pollRoutes = require("./routes/pollRoutes");
 
 // Import middleware
 const { errorHandler, notFound } = require("./middleware/errorMiddleware");
@@ -25,9 +27,22 @@ app.use((req, res, next) => {
 app.use(helmet());
 
 // --------------- CORS ---------------
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',') 
+  : ["http://localhost:3000"];
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
   })
 );
@@ -66,6 +81,8 @@ app.get("/", (req, res) => {
 // --------------- API Routes ---------------
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/petitions", petitionRoutes);
+app.use("/api/polls", pollRoutes);
 
 // --------------- Error Handling ---------------
 app.use(notFound);
