@@ -164,3 +164,89 @@ export const petitionApi = {
     });
   },
 };
+
+// Poll API
+export const pollApi = {
+  // Create a new poll (Officials only)
+  create: async (pollData: {
+    title: string;
+    description?: string;
+    options: string[];
+    targetLocation: string;
+    expiresAt?: string;
+  }) => {
+    return fetchApi('/polls', {
+      method: 'POST',
+      body: JSON.stringify(pollData),
+    });
+  },
+
+  // Get all polls (filtered by user location)
+  getAll: async (filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    location?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (filters?.page) queryParams.append('page', String(filters.page));
+    if (filters?.limit) queryParams.append('limit', String(filters.limit));
+    if (filters?.status) queryParams.append('status', filters.status);
+    if (filters?.location) queryParams.append('location', filters.location);
+
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/polls?${queryString}` : '/polls';
+
+    return fetchApi(endpoint, {
+      method: 'GET',
+    });
+  },
+
+  // Get poll by ID with vote statistics
+  getById: async (id: string) => {
+    return fetchApi(`/polls/${id}`, {
+      method: 'GET',
+    });
+  },
+
+  // Vote on a poll (Citizens only)
+  vote: async (id: string, selectedOption: string) => {
+    return fetchApi(`/polls/${id}/vote`, {
+      method: 'POST',
+      body: JSON.stringify({ selectedOption }),
+    });
+  },
+
+  // Get detailed poll statistics
+  getStats: async (id: string) => {
+    return fetchApi(`/polls/${id}/stats`, {
+      method: 'GET',
+    });
+  },
+
+  // Close a poll (Officials only)
+  close: async (id: string) => {
+    return fetchApi(`/polls/${id}/close`, {
+      method: 'PATCH',
+    });
+  },
+
+  // Get polls created by current official
+  getMyPolls: async (filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (filters?.page) queryParams.append('page', String(filters.page));
+    if (filters?.limit) queryParams.append('limit', String(filters.limit));
+    if (filters?.status) queryParams.append('status', filters.status);
+
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/polls/my-polls?${queryString}` : '/polls/my-polls';
+
+    return fetchApi(endpoint, {
+      method: 'GET',
+    });
+  },
+};
