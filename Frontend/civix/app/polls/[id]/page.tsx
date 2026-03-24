@@ -79,6 +79,7 @@ export default function PollDetailPage({
   const [closing, setClosing] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const canManagePolls = user?.role === "official" || user?.role === "admin";
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
@@ -216,26 +217,31 @@ export default function PollDetailPage({
   const isCreator = poll.createdBy._id === user._id;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950/20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="relative h-[280px] overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1494172892981-ce47ca685ecd?w=1920&q=80')`,
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/85 to-slate-900/75" />
+        <div className="relative h-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center">
           <Link
             href="/polls"
-            className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-6 transition-colors"
+            className="inline-flex items-center gap-2 text-gray-300 hover:text-white mb-4 transition-colors w-fit"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Polls
           </Link>
 
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-3">
             <span
               className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
                 poll.status === "active"
-                  ? "bg-emerald-500/20 text-emerald-200 border border-emerald-400/30"
-                  : "bg-gray-500/20 text-gray-200 border border-gray-400/30"
+                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/30"
+                  : "bg-gray-500/20 text-gray-300 border border-gray-400/30"
               }`}
             >
               {poll.status === "active" ? (
@@ -246,17 +252,17 @@ export default function PollDetailPage({
               {poll.status.charAt(0).toUpperCase() + poll.status.slice(1)}
             </span>
             {totalVotes > 0 && (
-              <span className="px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium text-white/90">
+              <span className="px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium text-white border border-white/20">
                 {totalVotes} vote{totalVotes !== 1 ? "s" : ""}
               </span>
             )}
           </div>
 
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-white mb-3 tracking-tight">
             {poll.title}
           </h1>
 
-          <div className="flex flex-wrap items-center gap-4 text-white/80 text-sm">
+          <div className="flex flex-wrap items-center gap-4 text-gray-300 text-sm">
             <div className="flex items-center gap-1.5">
               <MapPin className="h-4 w-4" />
               {poll.targetLocation}
@@ -273,7 +279,7 @@ export default function PollDetailPage({
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-12">
         {/* Success / Error Messages */}
         {successMessage && (
           <div className="mb-6 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
@@ -447,13 +453,13 @@ export default function PollDetailPage({
                 </div>
               )}
 
-              {user.role === "official" && (
+              {canManagePolls && (
                 <div className="p-6 pt-0">
                   <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
                     <div className="flex items-center gap-3">
                       <AlertCircle className="h-5 w-5 text-indigo-500 flex-shrink-0" />
                       <p className="text-indigo-700 dark:text-indigo-400 text-sm">
-                        As an official, you can view results but cannot vote on polls.
+                        As an official/admin, you can view results but cannot vote on polls.
                       </p>
                     </div>
                   </div>
