@@ -36,7 +36,7 @@ A digital civic platform built with Node.js, Express, and MongoDB for community 
 ### Backend
 - **Runtime**: Node.js
 - **Framework**: Express.js (v5.2.1)
-- **Database**: MongoDB with Mongoose (v9.2.0)
+- **Database**: MongoDB with Mongoose (v9.2.4)
 - **Authentication**: JWT (jsonwebtoken v9.0.3)
 - **Password Hashing**: bcryptjs (v3.0.3)
 - **Security**: Helmet.js (v8.1.0)
@@ -46,7 +46,9 @@ A digital civic platform built with Node.js, Express, and MongoDB for community 
 - **Dev Tools**: Nodemon (v3.1.11)
 
 ### Frontend
-- **Framework**: React (planned)
+- **Framework**: Next.js (v16.1.6) with React (v19.2.3)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS (v4)
 
 ---
 
@@ -77,6 +79,9 @@ Digital-civic-feb-team02/
 │   ├── .env                       # Environment variables
 │   └── package.json               # Dependencies
 ├── Frontend/
+│   ├── civix/                     # Next.js frontend app
+│   ├── App.js                     # Legacy/prototype frontend file
+│   ├── PollDetail.js              # Legacy/prototype frontend file
 │   └── gitkeep
 └── README.md
 ```
@@ -99,13 +104,15 @@ Digital-civic-feb-team02/
    cd Digital-civic-feb-team02
    ```
 
-2. **Navigate to Backend directory**
+2. **Install backend dependencies**
    ```bash
    cd Backend
+   npm install
    ```
 
-3. **Install dependencies**
+3. **Install frontend dependencies**
    ```bash
+   cd ..\Frontend\civix
    npm install
    ```
 
@@ -113,17 +120,21 @@ Digital-civic-feb-team02/
    
    Create a `.env` file in the `Backend` directory (see [Environment Variables](#environment-variables))
 
-5. **Start the development server**
+5. **Start the backend development server**
    ```bash
+   cd Backend
    npm run dev
    ```
 
-   Or for production:
+6. **Start the frontend development server**
    ```bash
-   npm start
+   cd ..\Frontend\civix
+   npm run dev
    ```
 
-The server will start on `http://localhost:5000`
+Backend runs on `http://localhost:5000`
+
+Frontend runs on `http://localhost:3000`
 
 ---
 
@@ -181,6 +192,7 @@ CORS_ORIGIN=http://localhost:3000
 
 ## 📜 Scripts
 
+### Backend (`Backend`)
 ```bash
 # Start production server
 npm start
@@ -188,8 +200,23 @@ npm start
 # Start development server with auto-reload
 npm run dev
 
-# Run tests (not implemented yet)
+# Placeholder test script (currently not implemented)
 npm test
+```
+
+### Frontend (`Frontend/civix`)
+```bash
+# Start Next.js development server
+npm run dev
+
+# Build production bundle
+npm run build
+
+# Start production server
+npm start
+
+# Run ESLint
+npm run lint
 ```
 
 ---
