@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { pollApi } from "@/lib/api";
+import { useGeolocation } from "@/lib/useGeolocation";
 import {
   Vote,
   Plus,
@@ -17,6 +18,8 @@ import {
   BarChart3,
   CheckCircle2,
   XCircle,
+  LocateFixed,
+  Loader2,
 } from "lucide-react";
 
 interface Poll {
@@ -64,6 +67,14 @@ export default function PollsPage() {
     pages: 0,
   });
 
+  const {
+    detectedLocation,
+    isDetecting,
+    error: geoError,
+    detectLocation,
+    clearLocation,
+  } = useGeolocation();
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.push("/login");
@@ -74,7 +85,8 @@ export default function PollsPage() {
     if (user) {
       fetchPolls();
     }
-  }, [user, pagination.page, statusFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, pagination.page, statusFilter, detectedLocation]);
 
   const fetchPolls = async () => {
     try {
@@ -83,6 +95,7 @@ export default function PollsPage() {
         page: pagination.page,
         limit: pagination.limit,
         status: statusFilter !== "all" ? statusFilter : undefined,
+        location: detectedLocation || undefined,
       });
       setPolls(response.data || []);
       setPagination((prev) => ({
@@ -94,6 +107,17 @@ export default function PollsPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDetectLocation = () => {
+    // Reset to page 1 when changing location filter
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    detectLocation();
+  };
+
+  const handleClearLocation = () => {
+    setPagination((prev) => ({ ...prev, page: 1 }));
+    clearLocation();
   };
 
   const filteredPolls = polls.filter((poll) =>
@@ -235,7 +259,51 @@ export default function PollsPage() {
                 <option value="closed">Closed</option>
               </select>
             </div>
+
+            {/* Real-time Location Filter */}
+            {detectedLocation ? (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-lg border border-indigo-300 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-sm font-medium text-indigo-700 dark:text-indigo-300 whitespace-nowrap">
+                <MapPin className="h-4 w-4 shrink-0" />
+                <span className="truncate max-w-[140px]">{detectedLocation}</span>
+                <button
+                  onClick={handleClearLocation}
+                  aria-label="Clear location filter"
+                  className="ml-1 rounded-full p-0.5 hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors"
+                >
+                  <XCircle className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleDetectLocation}
+                disabled={isDetecting}
+                className="inline-flex items-center gap-2 px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-300 dark:hover:border-indigo-600 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                {isDetecting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LocateFixed className="h-4 w-4" />
+                )}
+                {isDetecting ? "Detecting…" : "My Area"}
+              </button>
+            )}
           </div>
+
+          {/* Geolocation error message */}
+          {geoError && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+              <XCircle className="h-4 w-4 shrink-0" />
+              {geoError}
+            </div>
+          )}
+
+          {/* Active location filter indicator */}
+          {detectedLocation && (
+            <p className="mt-3 text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <LocateFixed className="h-3.5 w-3.5" />
+              Showing polls near <strong>{detectedLocation}</strong>. Click <strong>✕</strong> to see all areas.
+            </p>
+          )}
         </div>
 
         {/* Error State */}

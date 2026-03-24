@@ -6,9 +6,10 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { petitionApi } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
+import { useGeolocation } from "@/lib/useGeolocation";
 import {
   FileText, MapPin, Tag, Clock, Users, ChevronRight,
-  Filter, Search, Plus, TrendingUp
+  Filter, Search, Plus, TrendingUp, LocateFixed, Loader2, XCircle
 } from "lucide-react";
 
 const CATEGORIES = [
@@ -61,6 +62,14 @@ export default function PetitionsPage() {
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState("");
 
+  const {
+    detectedLocation,
+    isDetecting,
+    error: geoError,
+    detectLocation,
+    clearLocation,
+  } = useGeolocation();
+
   const fetchPetitions = async () => {
     setLoading(true);
     setError("");
@@ -68,6 +77,9 @@ export default function PetitionsPage() {
       const filters: Record<string, string> = {};
       if (category) filters.category = category;
       if (status) filters.status = status;
+
+      // Apply real-time location filter when available
+      if (detectedLocation) filters.location = detectedLocation;
 
       const res = await petitionApi.getAll(filters);
       if (res.success) {
@@ -83,7 +95,15 @@ export default function PetitionsPage() {
   useEffect(() => {
     fetchPetitions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, status]);
+  }, [category, status, detectedLocation]);
+
+  const handleDetectLocation = () => {
+    detectLocation();
+  };
+
+  const handleClearLocation = () => {
+    clearLocation();
+  };
 
   const filtered = petitions.filter((p) =>
     search
@@ -123,45 +143,91 @@ export default function PetitionsPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-6 flex flex-col sm:flex-row gap-3">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-             <input
-               type="text"
-               placeholder={canViewAllPetitions ? "Search petitions..." : "Search my petitions..."}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            />
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-6 flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+               <input
+                 type="text"
+                 placeholder={canViewAllPetitions ? "Search petitions..." : "Search my petitions..."}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="pl-9 pr-8 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="relative">
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="px-4 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white outline-none focus:border-indigo-500 appearance-none cursor-pointer"
+              >
+                {STATUS_OPTIONS.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Real-time Location Filter */}
+            {detectedLocation ? (
+              <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-indigo-300 dark:border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-sm font-medium text-indigo-700 dark:text-indigo-300 whitespace-nowrap">
+                <MapPin className="h-4 w-4 shrink-0" />
+                <span className="truncate max-w-[140px]">{detectedLocation}</span>
+                <button
+                  onClick={handleClearLocation}
+                  aria-label="Clear location filter"
+                  className="ml-1 rounded-full p-0.5 hover:bg-indigo-200 dark:hover:bg-indigo-700 transition-colors"
+                >
+                  <XCircle className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleDetectLocation}
+                disabled={isDetecting}
+                className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-300 dark:hover:border-indigo-600 hover:text-indigo-700 dark:hover:text-indigo-300 transition-all disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap"
+              >
+                {isDetecting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LocateFixed className="h-4 w-4" />
+                )}
+                {isDetecting ? "Detecting…" : "My Area"}
+              </button>
+            )}
           </div>
 
-          {/* Category Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="pl-9 pr-8 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white outline-none focus:border-indigo-500 appearance-none cursor-pointer"
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
-              ))}
-            </select>
-          </div>
+          {/* Geolocation error */}
+          {geoError && (
+            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+              <XCircle className="h-4 w-4 shrink-0" />
+              {geoError}
+            </div>
+          )}
 
-          {/* Status Filter */}
-          <div className="relative">
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="px-4 py-2 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white outline-none focus:border-indigo-500 appearance-none cursor-pointer"
-            >
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
-          </div>
+          {/* Active location filter indicator */}
+          {detectedLocation && (
+            <p className="text-xs text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+              <LocateFixed className="h-3.5 w-3.5" />
+              Filtering petitions near <strong>{detectedLocation}</strong>. Click <strong>✕</strong> to see all areas.
+            </p>
+          )}
         </div>
 
         {/* Content */}
@@ -173,7 +239,7 @@ export default function PetitionsPage() {
           <div className="text-center py-20">
             <p className="text-red-500 dark:text-red-400 mb-4">{error}</p>
             <button
-              onClick={fetchPetitions}
+              onClick={() => fetchPetitions()}
               className="text-indigo-600 dark:text-indigo-400 font-medium underline"
             >
               Try again
