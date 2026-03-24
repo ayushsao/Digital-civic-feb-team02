@@ -17,7 +17,6 @@ import {
   BarChart3,
   CheckCircle2,
   XCircle,
-  Sparkles,
 } from "lucide-react";
 
 interface Poll {
@@ -51,6 +50,7 @@ const STATUS_STYLES: Record<string, string> = {
 
 export default function PollsPage() {
   const { user, loading: authLoading } = useAuth();
+  const canManagePolls = user?.role === "official" || user?.role === "admin";
   const router = useRouter();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
@@ -120,38 +120,46 @@ export default function PollsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-indigo-950/20">
-      {/* Premium Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyek0zNiAyNHYySDI0di0yaDEyeiIvPjwvZz48L2c+PC9zdmc+')] opacity-30" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Premium Header with Real Image */}
+      <div className="relative h-[320px] md:h-[280px] overflow-hidden">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1540910419892-4a36d2c3266c?w=1920&q=80')`,
+          }}
+        />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/85 to-slate-900/75" />
+
+        {/* Content */}
+        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 w-full py-8">
             <div>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2.5 bg-white/10 backdrop-blur-sm rounded-xl">
-                  <Vote className="h-6 w-6 text-white" />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-indigo-500 rounded-lg">
+                  <Vote className="h-5 w-5 text-white" />
                 </div>
-                <span className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium text-white/90">
+                <span className="px-3 py-1 bg-white/10 backdrop-blur-sm rounded-full text-xs font-medium text-white border border-white/20">
                   Community Voice
                 </span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                Active Polls
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
+                Community Polls
               </h1>
-              <p className="text-indigo-100 max-w-xl">
-                Participate in community decisions and make your voice heard.
-                Every vote counts towards shaping our future.
+              <p className="text-gray-300 max-w-lg text-sm md:text-base leading-relaxed">
+                Your voice matters. Participate in local decisions and help shape
+                the future of your community through democratic polling.
               </p>
             </div>
-            {user.role === "official" && (
+            {canManagePolls && (
               <Link
                 href="/polls/create"
-                className="group inline-flex items-center gap-2 px-6 py-3.5 bg-white text-indigo-600 rounded-xl font-semibold shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-5 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-medium shadow-lg shadow-indigo-500/30 transition-all duration-200"
               >
                 <Plus className="h-5 w-5" />
-                Create New Poll
-                <Sparkles className="h-4 w-4 opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all" />
+                Create Poll
               </Link>
             )}
           </div>
@@ -160,63 +168,57 @@ export default function PollsPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 -mt-16 mb-8 relative z-10">
-          {[
-            {
-              label: "Total Polls",
-              value: pagination.total,
-              icon: BarChart3,
-              color: "indigo",
-            },
-            {
-              label: "Active Polls",
-              value: polls.filter((p) => p.status === "active").length,
-              icon: CheckCircle2,
-              color: "emerald",
-            },
-            {
-              label: "Your Location",
-              value: user.location,
-              icon: MapPin,
-              color: "purple",
-            },
-            {
-              label: "Your Role",
-              value: user.role === "official" ? "Official" : "Citizen",
-              icon: Users,
-              color: "amber",
-            },
-          ].map((stat, idx) => (
-            <div
-              key={idx}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700"
-            >
-              <div
-                className={`inline-flex p-2 rounded-lg bg-${stat.color}-100 dark:bg-${stat.color}-900/30 mb-3`}
-              >
-                <stat.icon
-                  className={`h-5 w-5 text-${stat.color}-600 dark:text-${stat.color}-400`}
-                />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 -mt-20 mb-8 relative z-10">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-indigo-50 dark:bg-indigo-900/30">
+                <BarChart3 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {stat.value}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {stat.label}
-              </p>
             </div>
-          ))}
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{pagination.total}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Total Polls</p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{polls.filter((p) => p.status === "active").length}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Active Polls</p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/30">
+                <MapPin className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white truncate">{user.location}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Your Location</p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-md border border-gray-100 dark:border-gray-700">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/30">
+                <Users className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">{canManagePolls ? "Official/Admin" : "Citizen"}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Your Role</p>
+          </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 mb-6 shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 mb-6 shadow-sm border border-gray-100 dark:border-gray-700">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search polls..."
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -224,7 +226,7 @@ export default function PollsPage() {
             <div className="relative">
               <Filter className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
               <select
-                className="appearance-none pl-12 pr-10 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer min-w-[160px]"
+                className="appearance-none pl-12 pr-10 py-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer min-w-[160px]"
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
@@ -277,7 +279,7 @@ export default function PollsPage() {
                 ? "Try adjusting your search terms"
                 : "There are no polls available in your location yet"}
             </p>
-            {user.role === "official" && (
+            {canManagePolls && (
               <Link
                 href="/polls/create"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors"

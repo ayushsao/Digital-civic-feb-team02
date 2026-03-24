@@ -64,6 +64,46 @@ async function fetchApi(endpoint: string, options: RequestInit = {}) {
   }
 }
 
+async function fetchApiBlob(endpoint: string, options: RequestInit = {}) {
+  const url = `${API_BASE_URL}${endpoint}`;
+  const token = tokenManager.getToken();
+
+  const config: RequestInit = {
+    ...options,
+    headers: {
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...options.headers,
+    },
+    credentials: 'include',
+  };
+
+  try {
+    const response = await fetch(url, config);
+
+    if (!response.ok) {
+      let message = 'An error occurred';
+      const contentType = response.headers.get('content-type') || '';
+
+      if (contentType.includes('application/json')) {
+        const data = await response.json();
+        message = data.message || message;
+      } else {
+        const text = await response.text();
+        if (text) message = text;
+      }
+
+      throw new ApiError(response.status, message);
+    }
+
+    return response.blob();
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    throw new ApiError(500, 'Network error. Please check your connection.');
+  }
+}
+
 // Auth API
 export const authApi = {
   register: async (userData: {
@@ -247,6 +287,110 @@ export const pollApi = {
 
     return fetchApi(endpoint, {
       method: 'GET',
+    });
+  },
+};
+
+// Governance API (Officials only)
+export const governanceApi = {
+  getPetitions: async (filters?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    category?: string;
+    search?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (filters?.page) queryParams.append('page', String(filters.page));
+    if (filters?.limit) queryParams.append('limit', String(filters.limit));
+    if (filters?.status) queryParams.append('status', filters.status);
+    if (filters?.category) queryParams.append('category', filters.category);
+    if (filters?.search) queryParams.append('search', filters.search);
+
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/governance/petitions?${queryString}` : '/governance/petitions';
+
+    return fetchApi(endpoint, { method: 'GET' });
+  },
+
+  getStats: async () => {
+    return fetchApi('/governance/stats', { method: 'GET' });
+  },
+
+  respondToPetition: async (
+    id: string,
+    payload: { response: string; status: 'under_review' | 'closed' }
+  ) => {
+    return fetchApi(`/governance/petitions/${id}/respond`, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  updatePetitionStatus: async (id: string, status: 'active' | 'under_review' | 'closed') => {
+    return fetchApi(`/governance/petitions/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+};
+
+// Reports API (Officials only)
+export const reportApi = {
+  getReports: async (filters?: {
+    startDate?: string;
+    endDate?: string;
+    location?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (filters?.startDate) queryParams.append('startDate', filters.startDate);
+    if (filters?.endDate) queryParams.append('endDate', filters.endDate);
+    if (filters?.location) queryParams.append('location', filters.location);
+
+    const queryString = queryParams.toString();
+    const endpoint = queryString ? `/reports?${queryString}` : '/reports';
+
+    return fetchApi(endpoint, { method: 'GET' });
+  },
+
+  exportCsv: async (filters?: {
+    type?: 'petitions' | 'polls' | 'signatures' | 'votes' | 'audit';
+    startDate?: string;
+    endDate?: string;
+    location?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('type', filters?.type || 'petitions');
+    if (filters?.startDate) queryParams.append('startDate', filters.startDate);
+    if (filters?.endDate) queryParams.append('endDate', filters.endDate);
+    if (filters?.location) queryParams.append('location', filters.location);
+
+    return fetchApiBlob(`/reports/export?${queryParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'text/csv',
+      },
+    });
+  },
+
+  exportPdf: async (filters?: {
+    type?: 'petitions' | 'polls' | 'signatures' | 'votes' | 'audit';
+    startDate?: string;
+    endDate?: string;
+    location?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('type', filters?.type || 'petitions');
+    queryParams.append('format', 'pdf');
+    if (filters?.startDate) queryParams.append('startDate', filters.startDate);
+    if (filters?.endDate) queryParams.append('endDate', filters.endDate);
+    if (filters?.location) queryParams.append('location', filters.location);
+
+    return fetchApiBlob(`/reports/export?${queryParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/pdf',
+      },
     });
   },
 };
