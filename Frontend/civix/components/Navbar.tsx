@@ -18,15 +18,18 @@ export default function Navbar() {
     router.push("/login");
   };
 
-  // Check if we're on the homepage (which has dark background)
+  // Check if we're on the homepage
   const isHomePage = pathname === "/";
+
+  const homeNavClasses = "bg-white/78 dark:bg-gray-900/80 backdrop-blur-xl border-b border-slate-200/85 dark:border-gray-800 shadow-[0_6px_26px_-20px_rgba(15,23,42,0.55)]";
+  const defaultNavClasses = "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800";
+  const homeActionClasses = "text-slate-700 dark:text-gray-300 hover:text-slate-950 dark:hover:text-white hover:bg-white/90 dark:hover:bg-white/10";
+  const defaultActionClasses = "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800";
 
   return (
     <nav
       className={`sticky top-0 z-50 transition-all duration-300 ${
-        isHomePage
-          ? "bg-gray-900/80 backdrop-blur-md border-b border-gray-800"
-          : "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800"
+        isHomePage ? homeNavClasses : defaultNavClasses
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,9 +45,7 @@ export default function Navbar() {
             <button
               onClick={toggleTheme}
               className={`p-2 rounded-lg transition-colors ${
-                isHomePage
-                  ? "text-gray-300 hover:text-white hover:bg-white/10"
-                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                isHomePage ? homeActionClasses : defaultActionClasses
               }`}
               aria-label="Toggle theme"
             >
@@ -59,7 +60,7 @@ export default function Navbar() {
               <>
                 <span
                   className={`text-sm hidden md:block ${
-                    isHomePage ? "text-gray-300" : "text-gray-600 dark:text-gray-300"
+                    isHomePage ? "text-slate-700 dark:text-gray-300" : "text-gray-600 dark:text-gray-300"
                   }`}
                 >
                   {user.name}
@@ -68,7 +69,7 @@ export default function Navbar() {
                   href="/dashboard"
                   className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
                     isHomePage
-                      ? "text-gray-300 hover:text-white hover:bg-white/10"
+                      ? "text-slate-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/90 dark:hover:bg-white/10"
                       : "text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
                 >
@@ -79,7 +80,7 @@ export default function Navbar() {
                   href="/petitions"
                   className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
                     isHomePage
-                      ? "text-gray-300 hover:text-white hover:bg-white/10"
+                      ? "text-slate-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/90 dark:hover:bg-white/10"
                       : "text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
                 >
@@ -90,7 +91,7 @@ export default function Navbar() {
                   href="/polls"
                   className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
                     isHomePage
-                      ? "text-gray-300 hover:text-white hover:bg-white/10"
+                      ? "text-slate-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/90 dark:hover:bg-white/10"
                       : "text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
                 >
@@ -103,7 +104,7 @@ export default function Navbar() {
                       href="/governance"
                       className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
                         isHomePage
-                          ? "text-gray-300 hover:text-white hover:bg-white/10"
+                          ? "text-slate-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/90 dark:hover:bg-white/10"
                           : "text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                       }`}
                     >
@@ -114,7 +115,7 @@ export default function Navbar() {
                       href="/reports"
                       className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
                         isHomePage
-                          ? "text-gray-300 hover:text-white hover:bg-white/10"
+                          ? "text-slate-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/90 dark:hover:bg-white/10"
                           : "text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                       }`}
                     >
@@ -136,7 +137,7 @@ export default function Navbar() {
                   onClick={handleLogout}
                   className={`flex items-center gap-2 text-sm font-medium px-3 py-2 rounded-lg transition-colors ${
                     isHomePage
-                      ? "text-gray-300 hover:text-white hover:bg-white/10"
+                      ? "text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/90 dark:hover:bg-white/10"
                       : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
                 >
@@ -150,7 +151,7 @@ export default function Navbar() {
                   href="/login"
                   className={`text-sm font-medium px-4 py-2 rounded-lg transition-colors ${
                     isHomePage
-                      ? "text-gray-300 hover:text-white hover:bg-white/10"
+                      ? "text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/90 dark:hover:bg-white/10"
                       : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
                 >
